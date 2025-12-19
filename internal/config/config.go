@@ -1,14 +1,19 @@
 package config
 
-import "os"
+import (
+	"log/slog"
+	"os"
+)
 
 type ServerConf struct {
-	Port string
-	Env  string
+	Port   string
+	Env    string
+	Logger *slog.Logger
 }
 
 func NewServerConf() ServerConf {
-	return ServerConf{GetEnv("APP_PORT", ":8081"), GetEnv("APP_ENV", "local")}
+	l := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	return ServerConf{GetEnv("APP_PORT", ":8081"), GetEnv("APP_ENV", "local"), l}
 
 }
 

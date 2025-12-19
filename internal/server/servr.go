@@ -17,6 +17,7 @@ type MyServer struct {
 }
 
 func NewMyServer(c config.ServerConf, r router.Router) *MyServer {
+
 	return &MyServer{httpServer: &http.Server{Addr: c.Port, Handler: r.Handler()}}
 
 }
