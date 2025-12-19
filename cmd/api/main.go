@@ -17,7 +17,7 @@ func main() {
 	r := router.NewMyRouter()
 
 	m := health.NewHealthHandler()
-	r.AddRout("/", m.ResponsOK)
+	r.AddRout("/health", m.ResponsOK)
 
 	a := auth.NewAuth()
 	r.AddRout("/auth/registry", a.Registry)

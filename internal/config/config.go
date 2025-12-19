@@ -11,12 +11,14 @@ type ServerConf struct {
 	Logger *slog.Logger
 }
 
+// читаем переменные окружения чтобы собрать экземпляр конфигурации по инфраструктуре
 func NewServerConf() ServerConf {
 	l := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	return ServerConf{GetEnv("APP_PORT", ":8081"), GetEnv("APP_ENV", "local"), l}
 
 }
 
+// вызов ОС функции на чтение переменных
 func GetEnv(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
