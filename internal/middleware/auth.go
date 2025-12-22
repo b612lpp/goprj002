@@ -2,26 +2,35 @@ package middleware
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 	"net/http"
 )
 
-type UserId struct{}
+type UserInfo struct {
+	Id, Role string
+}
 
 func AuthMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("hello from private area")
-		ActualCtx := r.Context()
-		//Проверяем факт аутентификации. Сейчас в заголовке
-		if h := r.Header["Auth"]; h[0] != "true" {
-			fmt.Println("хедер Auth пришел в MW", r.Header["Auth"])
+
+		if userData, err := CheckHeaders(r.Header); err != nil {
 			w.WriteHeader(401)
+			slog.Info("Ошибка аутентификации")
 			return
 		} else {
-			fmt.Println("хедер Auth пришел в MW", r.Header["Auth"])
-			ctx := context.WithValue(ActualCtx, UserId{}, "me")
-
-			next.ServeHTTP(w, r.WithContext(ctx))
+			ActualCtx := r.Context()
+			Ctx := context.WithValue(ActualCtx, UserInfo{}, userData)
+			next.ServeHTTP(w, r.WithContext(Ctx))
 		}
+
 	})
+}
+
+func CheckHeaders(h http.Header) (UserInfo, error) {
+	id, i := h["Auth"]
+	role, r := h["Role"]
+	if i == true && r == true {
+		return UserInfo{Id: id[0], Role: role[0]}, nil
+	}
+	return UserInfo{}, ErrBadCreds
 }

@@ -17,5 +17,5 @@ func NewMeter() *Meter {
 
 func (m *Meter) TmpMeter(w http.ResponseWriter, r *http.Request) {
 	ActualCtx := r.Context()
-	fmt.Println("Запрос от пользователя ", ActualCtx.Value(middleware.UserId{}))
+	fmt.Println("Запрос от пользователя ", ActualCtx.Value(middleware.UserInfo{}))
 }
