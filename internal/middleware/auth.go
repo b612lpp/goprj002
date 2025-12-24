@@ -13,7 +13,7 @@ type OwnerRole struct {
 }
 
 type UserInfo struct {
-	Id, Role string
+	Id, Role, Status string
 }
 
 func AuthMW(next http.Handler) http.Handler {
@@ -34,11 +34,12 @@ func AuthMW(next http.Handler) http.Handler {
 }
 
 func CheckHeaders(h http.Header) (UserInfo, error) {
-	id, i := h["Auth"]
+	authStatus, i := h["Auth"]
+	id, _ := h["Login"]
 	role, r := h["Role"]
 	if i == true && r == true {
 
-		return UserInfo{Id: id[0], Role: role[0]}, nil
+		return UserInfo{Status: authStatus[0], Role: role[0], Id: id[0]}, nil
 	}
 	return UserInfo{}, ErrBadCreds
 }

@@ -7,7 +7,6 @@ type AllMeters interface {
 	New() []int
 }
 
-type MeterType string
 type GasMeter struct {
 	Title string
 	Value int
@@ -27,7 +26,7 @@ type MeterReading struct {
 	ownerId   string
 	meterType string
 	CreatedAt time.Time
-	Values    []int
+	Values    []int `json:"value"`
 }
 
 func NewMeterReading(o, m string) MeterReading {
@@ -40,4 +39,12 @@ func (mr *MeterReading) GetOwnerID() string {
 
 func (mr *MeterReading) GetMEterType() string {
 	return mr.meterType
+}
+
+func NewGasReading(owner string) MeterReading {
+	return MeterReading{ownerId: owner, meterType: "_Gas"}
+}
+func NewElectricityReading(owner string, day, night int) MeterReading {
+
+	return MeterReading{ownerId: owner, meterType: "_Electro", Values: []int{day, night}}
 }

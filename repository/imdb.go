@@ -13,14 +13,14 @@ func NemIMDB() Repo {
 }
 
 func (db *IMDB) Save(mr domain.MeterReading) error {
-	key := mr.GetOwnerID() + "_" + mr.GetMEterType()
+	key := mr.GetOwnerID() + mr.GetMEterType()
 	db.Data[key] = append(db.Data[key], mr)
 	return nil
 }
 
 func (db *IMDB) GetLast(u, t string) (domain.MeterReading, error) {
-	q := len(db.Data[u+"_"+t]) - 1
-	if qq, ok := db.Data[u+"_"+t]; ok != false {
+	q := len(db.Data[u+t]) - 1
+	if qq, ok := db.Data[u+t]; ok != false {
 		return qq[q], nil
 	}
 	return domain.MeterReading{}, ErrEmptyData
