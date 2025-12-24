@@ -1,23 +1,30 @@
 package meter
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/b612lpp/goprj002/application"
+	"github.com/b612lpp/goprj002/domain"
 	"github.com/b612lpp/goprj002/internal/middleware"
 )
 
 type Meter struct {
-	Tmp string
+	Uc *application.SubmitReading
 }
 
 func NewMeter(uc *application.SubmitReading) *Meter {
-	return &Meter{Tmp: "Временная запись"}
+	return &Meter{Uc: uc}
 }
 
 func (m *Meter) GetValues(w http.ResponseWriter, r *http.Request) {
 
 	ActualCtx := r.Context()
-	fmt.Println("Запрос от пользователя ", ActualCtx.Value(middleware.UserInfo{}))
+
+	uid := ActualCtx.Value(middleware.OwnerId{})
+	ur := ActualCtx.Value(middleware.OwnerRole{})
+	q := domain.NewMeterReading(uid.(string), ur.(string))
+	if err := m.Uc.Execute(q); err != nil {
+		w.WriteHeader(400)
+		return
+	}
 }

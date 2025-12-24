@@ -30,8 +30,8 @@ type MeterReading struct {
 	Values    []int
 }
 
-func (mr *MeterReading) NewMeterReading(o, m string) *MeterReading {
-	return &MeterReading{ownerId: o, meterType: m}
+func NewMeterReading(o, m string) MeterReading {
+	return MeterReading{ownerId: o, meterType: m}
 }
 
 func (mr *MeterReading) GetOwnerID() string {
@@ -39,5 +39,5 @@ func (mr *MeterReading) GetOwnerID() string {
 }
 
 func (mr *MeterReading) GetMEterType() string {
-	return mr.ownerId
+	return mr.meterType
 }

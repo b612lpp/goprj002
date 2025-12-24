@@ -19,7 +19,7 @@ func (db *IMDB) Save(mr domain.MeterReading) error {
 }
 
 func (db *IMDB) GetLast(u, t string) (domain.MeterReading, error) {
-	q := len(db.Data[u+"_"+t])
+	q := len(db.Data[u+"_"+t]) - 1
 	if qq, ok := db.Data[u+"_"+t]; ok != false {
 		return qq[q], nil
 	}

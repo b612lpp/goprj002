@@ -1,13 +1,14 @@
 package application
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/b612lpp/goprj002/domain"
-	"github.com/b612lpp/goprj002/internal/middleware"
 	"github.com/b612lpp/goprj002/repository"
 )
+
+type AllUseCases struct {
+}
 
 type SubmitReading struct {
 	R repository.Repo
@@ -18,9 +19,14 @@ func NewSubmitReading(r repository.Repo) *SubmitReading {
 }
 
 func (s *SubmitReading) Execute(mr domain.MeterReading) error {
-	u := context.Background().Value(middleware.UserInfo{})
-	fmt.Println(u)
-	//	q:=s.R.GetLast(u)
-	return nil
+	if z, err := s.R.GetLast("user", "gas"); err != nil {
+
+		return err
+	} else {
+		fmt.Println(z)
+		return nil
+	}
+
+	//q:=s.R.GetLast(u)
 
 }
