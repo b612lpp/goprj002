@@ -39,7 +39,13 @@ func (s *SubmitReading) Execute(mr domain.MeterReading) error {
 
 		return nil
 	}
+<<<<<<< HEAD
 	slog.Info("неизвестная ошибка", "сервер вернул", ErrUnknown)
 	return ErrUnknown
+=======
+	slog.Info("неизвестная ошибка", "сервервернул", ErrUnknown)
+	return ErrUnknown
+	//q:=s.R.GetLast(u)
+>>>>>>> 11e7c389f233060f9d9177893403e5c357972f9f
 
 }
