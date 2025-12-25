@@ -42,7 +42,7 @@ func (mr *MeterReading) GetMEterType() string {
 }
 
 func NewGasReading(owner string) MeterReading {
-	return MeterReading{ownerId: owner, meterType: "_Gas"}
+	return MeterReading{ownerId: owner, meterType: "_Gas", CreatedAt: time.Now()}
 }
 func NewElectricityReading(owner string, day, night int) MeterReading {
 

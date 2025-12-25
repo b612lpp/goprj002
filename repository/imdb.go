@@ -19,9 +19,14 @@ func (db *IMDB) Save(mr domain.MeterReading) error {
 }
 
 func (db *IMDB) GetLast(u, t string) (domain.MeterReading, error) {
-	q := len(db.Data[u+t]) - 1
-	if qq, ok := db.Data[u+t]; ok != false {
-		return qq[q], nil
+	tmpLast := len(db.Data[u+t]) - 1
+	if tmpLast >= 0 {
+		return db.Data[u+t][tmpLast], nil
 	}
+
 	return domain.MeterReading{}, ErrEmptyData
+}
+
+func (db *IMDB) SelectAll() *IMDB {
+	return db
 }
