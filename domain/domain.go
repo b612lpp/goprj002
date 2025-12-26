@@ -41,6 +41,14 @@ func (mr *MeterReading) GetMEterType() string {
 	return mr.meterType
 }
 
+func (mr *MeterReading) SetValue(v []int) error {
+	if len(v) != 1 {
+		return ErrValueToAdd
+	}
+	mr.Values = v
+	return nil
+}
+
 func NewGasReading(owner string) MeterReading {
 	return MeterReading{ownerId: owner, meterType: "_Gas", CreatedAt: time.Now()}
 }

@@ -2,6 +2,7 @@ package meter
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/b612lpp/goprj002/domain"
 	"github.com/b612lpp/goprj002/internal/delivery/http/exeptions"
 	"github.com/b612lpp/goprj002/internal/middleware"
+	"github.com/b612lpp/goprj002/repository"
 )
 
 type Meter struct {
@@ -31,11 +33,23 @@ func (m *Meter) GetValues(w http.ResponseWriter, r *http.Request) {
 		slog.Info("функция обработки данных вернула ", "ошибка ", err)
 		return
 	}
-	mr.Values = tmpD
+	mr.SetValue(tmpD)
 	slog.Info("получены данные", "тип счетчика газ. показания", tmpD)
-	if err := m.Uc.Execute(mr); err != nil {
-		w.WriteHeader(400)
+
+	err = m.Uc.Execute(mr)
+	switch {
+	case err == nil:
 		return
+	case errors.Is(err, repository.ErrEmptyData):
+		slog.Info("нет предыдущих значений")
+		w.WriteHeader(204)
+	case errors.Is(err, application.ErrValueValidation):
+		slog.Info("значение меньше предыдущего")
+		w.WriteHeader(400)
+	default:
+		w.WriteHeader(500)
+		slog.Error("неизвестная ошибка")
+
 	}
 
 }

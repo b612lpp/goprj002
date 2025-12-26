@@ -1,7 +1,6 @@
 package application
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/b612lpp/goprj002/domain"
@@ -20,32 +19,36 @@ func NewSubmitReading(r repository.Repo) *SubmitReading {
 }
 
 func (s *SubmitReading) Execute(mr domain.MeterReading) error {
-
 	gl, err := s.R.GetLast(mr.GetOwnerID(), mr.GetMEterType())
 	if err != nil && err != repository.ErrEmptyData {
 		return err
 	}
-	if len(gl.Values) > 0 && mr.Values[0] >= gl.Values[0] {
-		s.R.Save(mr)
-		slog.Info("данные добавлены в бд", "для идентификатора ", mr.GetOwnerID(), "новые показания ", mr.Values[0])
-		fmt.Println(s.R.SelectAll())
-		return nil
 
+	if len(mr.Values) == 0 {
+		return ErrValueValidation
+	}
+
+	v := mr.Values[0]
+	if v <= 0 {
+		return ErrValueValidation
 	}
 
 	if len(gl.Values) == 0 {
-		s.R.Save(mr)
-		slog.Info("новые данные записаны в бд")
-
+		if err := s.R.Save(mr); err != nil {
+			return err
+		}
+		slog.Info("новые данные записаны в бд", "owner", mr.GetOwnerID(), "value", v)
 		return nil
 	}
-<<<<<<< HEAD
-	slog.Info("неизвестная ошибка", "сервер вернул", ErrUnknown)
-	return ErrUnknown
-=======
-	slog.Info("неизвестная ошибка", "сервервернул", ErrUnknown)
-	return ErrUnknown
-	//q:=s.R.GetLast(u)
->>>>>>> 11e7c389f233060f9d9177893403e5c357972f9f
 
+	last := gl.Values[0]
+	if v < last {
+		return ErrValueValidation
+	}
+
+	if err := s.R.Save(mr); err != nil {
+		return err
+	}
+	slog.Info("данные добавлены в бд", "owner", mr.GetOwnerID(), "new_value", v, "previous", last)
+	return nil
 }
