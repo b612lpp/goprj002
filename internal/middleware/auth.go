@@ -27,6 +27,7 @@ func AuthMW(next http.Handler) http.Handler {
 			ctx := r.Context()
 			ctx = context.WithValue(ctx, OwnerId{}, userData.Id)
 			ctx = context.WithValue(ctx, OwnerRole{}, userData.Role)
+			slog.Info("пользователь аутентифицирован ", "Логин ", userData.Id, "Роль ", userData.Role)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
@@ -35,9 +36,9 @@ func AuthMW(next http.Handler) http.Handler {
 
 func CheckHeaders(h http.Header) (UserInfo, error) {
 	authStatus, i := h["Auth"]
-	id, _ := h["Login"]
+	id, l := h["Login"]
 	role, r := h["Role"]
-	if i == true && r == true {
+	if i == true && r == true && l == true {
 
 		return UserInfo{Status: authStatus[0], Role: role[0], Id: id[0]}, nil
 	}

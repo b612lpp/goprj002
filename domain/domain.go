@@ -52,7 +52,7 @@ func (mr *MeterReading) SetValue(v []int) error {
 func NewGasReading(owner string) MeterReading {
 	return MeterReading{ownerId: owner, meterType: "_Gas", CreatedAt: time.Now()}
 }
-func NewElectricityReading(owner string, day, night int) MeterReading {
+func NewEnReading(owner string, day, night int) MeterReading {
 
 	return MeterReading{ownerId: owner, meterType: "_Electro", Values: []int{day, night}}
 }

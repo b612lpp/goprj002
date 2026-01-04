@@ -10,15 +10,15 @@ import (
 type AllUseCases struct {
 }
 
-type SubmitReading struct {
+type SubmitReadingGas struct {
 	R repository.Repo
 }
 
-func NewSubmitReading(r repository.Repo) *SubmitReading {
-	return &SubmitReading{R: r}
+func NewSubmitReadingGas(r repository.Repo) *SubmitReadingGas {
+	return &SubmitReadingGas{R: r}
 }
 
-func (s *SubmitReading) Execute(mr domain.MeterReading) error {
+func (s *SubmitReadingGas) Execute(mr domain.MeterReading) error {
 	gl, err := s.R.GetLast(mr.GetOwnerID(), mr.GetMEterType())
 	if err != nil && err != repository.ErrEmptyData {
 		return err

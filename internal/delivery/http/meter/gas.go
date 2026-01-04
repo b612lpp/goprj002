@@ -13,15 +13,15 @@ import (
 	"github.com/b612lpp/goprj002/repository"
 )
 
-type Meter struct {
-	Uc *application.SubmitReading
+type GasMeterHandler struct {
+	Uc application.SubmitReadingGas
 }
 
-func NewMeter(uc *application.SubmitReading) *Meter {
-	return &Meter{Uc: uc}
+func NewGasMeterHandler(uc application.SubmitReadingGas) *GasMeterHandler {
+	return &GasMeterHandler{Uc: uc}
 }
 
-func (m *Meter) GetValues(w http.ResponseWriter, r *http.Request) {
+func (m *GasMeterHandler) GetGasValues(w http.ResponseWriter, r *http.Request) {
 	//читаем роль из контекста. От него будет ветвится сценарий, а так же формироваться идентификатор для записи объекта показаний
 	uid := r.Context().Value(middleware.OwnerId{}).(string)
 	//создаём экземпляр объекта показаний, с предопределенным типом счетчика
