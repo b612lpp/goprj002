@@ -21,10 +21,9 @@ func (s *SubmitReadingEn) Execute(mr domain.MeterReading) error {
 		fmt.Println("Ошибка")
 		return err
 	} else {
-		fmt.Println("мы в юз кейсе")
-		fmt.Println(mr)
+
 		slog.Info("данные приняты", "показания ", mr.Values)
-		fmt.Print(s.R.SelectAll())
+		fmt.Println(s.R.SelectAll())
 		return nil
 	}
 

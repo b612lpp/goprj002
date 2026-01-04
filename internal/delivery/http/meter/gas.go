@@ -1,14 +1,12 @@
 package meter
 
 import (
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/b612lpp/goprj002/application"
 	"github.com/b612lpp/goprj002/domain"
-	"github.com/b612lpp/goprj002/internal/delivery/http/exeptions"
 	"github.com/b612lpp/goprj002/internal/middleware"
 	"github.com/b612lpp/goprj002/repository"
 )
@@ -21,20 +19,27 @@ func NewGasMeterHandler(uc application.SubmitReadingGas) *GasMeterHandler {
 	return &GasMeterHandler{Uc: uc}
 }
 
+type gasValues struct {
+	I []int `json:"value"`
+}
+
 func (m *GasMeterHandler) GetGasValues(w http.ResponseWriter, r *http.Request) {
+	//Инициализируем пустую структуру для пользовательских данных
+	t := gasValues{}
+
 	//читаем роль из контекста. От него будет ветвится сценарий, а так же формироваться идентификатор для записи объекта показаний
 	uid := r.Context().Value(middleware.OwnerId{}).(string)
 	//создаём экземпляр объекта показаний, с предопределенным типом счетчика
 	mr := domain.NewGasReading(uid)
 	//Забираем инт из JSON и аппендим в пустой массив нового экземпляра показаний
-	tmpD, err := parseIncJ(r)
+	err := parseIncJ(r, &t)
 	if err != nil {
 		w.WriteHeader(400)
 		slog.Info("функция обработки данных вернула ", "ошибка ", err)
 		return
 	}
-	mr.SetValue(tmpD)
-	slog.Info("получены данные", "тип счетчика газ. показания", tmpD)
+	mr.SetValue(t.I)
+	slog.Info("получены данные", "тип счетчика газ. показания", t.I)
 
 	err = m.Uc.Execute(mr)
 	switch {
@@ -50,21 +55,6 @@ func (m *GasMeterHandler) GetGasValues(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		slog.Error("неизвестная ошибка")
 
-	}
-
-}
-
-func parseIncJ(r *http.Request) ([]int, error) {
-	type t struct {
-		I []int `json:"value"`
-	}
-	q := t{}
-	if err := json.NewDecoder(r.Body).Decode(&q); err != nil {
-
-		return nil, exeptions.ErrParseData
-	} else {
-
-		return q.I, nil
 	}
 
 }

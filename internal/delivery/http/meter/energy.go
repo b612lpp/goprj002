@@ -1,14 +1,14 @@
 package meter
 
 import (
-	"encoding/json"
-	"fmt"
+	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/b612lpp/goprj002/application"
 	"github.com/b612lpp/goprj002/domain"
 	"github.com/b612lpp/goprj002/internal/middleware"
+	"github.com/b612lpp/goprj002/repository"
 )
 
 type EnMeterHandler struct {
@@ -19,18 +19,45 @@ func NewEnMeterHandler(uc application.SubmitReadingEn) *EnMeterHandler {
 	return &EnMeterHandler{Uc: uc}
 }
 
+// Структура для получения пользовательских данных
 type enValues struct {
 	Day   int `json:"day"`
 	Night int `json:"night"`
 }
 
 func (me *EnMeterHandler) GetEnValues(w http.ResponseWriter, r *http.Request) {
-	v := enValues{}
-	fmt.Println("дошли до хэндлера")
-	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-		slog.Error("ошибка обработки данных")
-	}
+
+	//Вычитываем пользователя из аутентификатора и создаем экземпляр доменного объекта
 	uid := r.Context().Value(middleware.OwnerId{}).(string)
-	emr := domain.NewEnReading(uid, v.Day, v.Night)
-	me.Uc.Execute(emr)
+	emr := domain.NewEnReading(uid)
+
+	//Инициализируем структуру для получения пользовательских данных и передаём её адрес в парсер
+	t := enValues{}
+	if err := parseIncJ(r, &t); err != nil {
+		slog.Error("Ошибка обработки входящих данных")
+		w.WriteHeader(400)
+		return
+	}
+
+	//После успешного парсинга заполняем модель
+
+	emr.Values = append(emr.Values, t.Day, t.Night)
+
+	//Передаем заполненный объект в юз кейс
+	slog.Info("данные переданы на обработку", "скоуп значений", t)
+	err := me.Uc.Execute(emr)
+	switch {
+	case err == nil:
+		return
+	case errors.Is(err, repository.ErrEmptyData):
+		slog.Info("нет предыдущих значений")
+		w.WriteHeader(204)
+	case errors.Is(err, application.ErrValueValidation):
+		slog.Info("значение меньше предыдущего")
+		w.WriteHeader(400)
+	default:
+		w.WriteHeader(500)
+		slog.Error("неизвестная ошибка")
+	}
+	w.WriteHeader(http.StatusCreated)
 }
