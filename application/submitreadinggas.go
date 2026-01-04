@@ -20,35 +20,29 @@ func NewSubmitReadingGas(r repository.Repo) *SubmitReadingGas {
 
 func (s *SubmitReadingGas) Execute(mr domain.MeterReading) error {
 	gl, err := s.R.GetLast(mr.GetOwnerID(), mr.GetMEterType())
+
 	if err != nil && err != repository.ErrEmptyData {
+		slog.Error("ошибка получения предыдущих показаний", "owner", mr.GetOwnerID(), "err", err)
 		return err
 	}
 
-	if len(mr.Values) == 0 {
-		return ErrValueValidation
+	if mr.Validate() != true {
+		slog.Info("Полученные данные меньше 0")
+		return ErrLowerZero
 	}
 
-	v := mr.Values[0]
-	if v <= 0 {
-		return ErrValueValidation
-	}
-
-	if len(gl.Values) == 0 {
+	if len(gl.Values) == 0 && err == repository.ErrEmptyData {
 		if err := s.R.Save(mr); err != nil {
 			return err
 		}
-		slog.Info("новые данные записаны в бд", "owner", mr.GetOwnerID(), "value", v)
+		slog.Info("новые данные записаны в бд", "owner", mr.GetOwnerID(), "value", mr.Values)
 		return nil
 	}
 
-	last := gl.Values[0]
-	if v < last {
+	if res := mr.IsValidComparedTo(gl.Values); res != true {
 		return ErrValueValidation
 	}
-
-	if err := s.R.Save(mr); err != nil {
-		return err
-	}
-	slog.Info("данные добавлены в бд", "owner", mr.GetOwnerID(), "new_value", v, "previous", last)
+	s.R.Save(mr)
+	slog.Info("данные добавлены в бд", "owner", mr.GetOwnerID(), "new_values", mr.Values, "previous", gl.Values)
 	return nil
 }

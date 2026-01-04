@@ -39,7 +39,11 @@ func (me *EnMeterHandler) GetEnValues(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//После успешного парсинга заполняем модель
-	emr.SetValue([]int{t.Day, t.Night})
+	if err := emr.SetValue([]int{t.Day, t.Night}); err != nil {
+		w.WriteHeader(500)
+		slog.Info("ошибка процессинга данных", "подробности", err)
+		return
+	}
 
 	//Передаем заполненный объект в юз кейс
 	slog.Info("данные переданы на обработку", "скоуп значений", t)
