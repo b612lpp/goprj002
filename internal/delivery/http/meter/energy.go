@@ -8,7 +8,6 @@ import (
 	"github.com/b612lpp/goprj002/application"
 	"github.com/b612lpp/goprj002/domain"
 	"github.com/b612lpp/goprj002/internal/middleware"
-	"github.com/b612lpp/goprj002/repository"
 )
 
 type EnMeterHandler struct {
@@ -40,24 +39,22 @@ func (me *EnMeterHandler) GetEnValues(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//После успешного парсинга заполняем модель
-
-	emr.Values = append(emr.Values, t.Day, t.Night)
+	emr.SetValue([]int{t.Day, t.Night})
 
 	//Передаем заполненный объект в юз кейс
 	slog.Info("данные переданы на обработку", "скоуп значений", t)
 	err := me.Uc.Execute(emr)
-	switch {
-	case err == nil:
+	if err == nil {
+		w.WriteHeader(http.StatusCreated)
 		return
-	case errors.Is(err, repository.ErrEmptyData):
-		slog.Info("нет предыдущих значений")
-		w.WriteHeader(204)
-	case errors.Is(err, application.ErrValueValidation):
+	}
+
+	if errors.Is(err, application.ErrValueValidation) {
 		slog.Info("значение меньше предыдущего")
 		w.WriteHeader(400)
-	default:
-		w.WriteHeader(500)
-		slog.Error("неизвестная ошибка")
+		return
 	}
-	w.WriteHeader(http.StatusCreated)
+
+	slog.Error("неизвестная ошибка", "err", err)
+	w.WriteHeader(500)
 }

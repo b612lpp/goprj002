@@ -8,7 +8,6 @@ import (
 	"github.com/b612lpp/goprj002/application"
 	"github.com/b612lpp/goprj002/domain"
 	"github.com/b612lpp/goprj002/internal/middleware"
-	"github.com/b612lpp/goprj002/repository"
 )
 
 type GasMeterHandler struct {
@@ -42,19 +41,18 @@ func (m *GasMeterHandler) GetGasValues(w http.ResponseWriter, r *http.Request) {
 	slog.Info("получены данные", "тип счетчика газ. показания", t.I)
 
 	err = m.Uc.Execute(mr)
-	switch {
-	case err == nil:
+	if err == nil {
+		w.WriteHeader(http.StatusCreated)
 		return
-	case errors.Is(err, repository.ErrEmptyData):
-		slog.Info("нет предыдущих значений")
-		w.WriteHeader(204)
-	case errors.Is(err, application.ErrValueValidation):
+	}
+
+	if errors.Is(err, application.ErrValueValidation) {
 		slog.Info("значение меньше предыдущего")
 		w.WriteHeader(400)
-	default:
-		w.WriteHeader(500)
-		slog.Error("неизвестная ошибка")
-
+		return
 	}
+
+	slog.Error("неизвестная ошибка", "err", err)
+	w.WriteHeader(500)
 
 }
