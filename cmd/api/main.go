@@ -17,8 +17,10 @@ func main() {
 	c := config.NewServerConf()
 	slog.SetDefault(c.Logger)
 	r := router.NewMyRouter()
+
 	//создаём юз кейсы
-	meterUseCase := application.NewSubmitReading(c.Db)
+	gasMeterUseCase := application.NewSubmitReadingGas(c.Db)
+	enMeterUseCase := application.NewSubmitReadingEn(c.Db)
 
 	health := health.NewHealthHandler()
 	r.AddPublicRout("/public/health", health.ResponsOK)
@@ -28,8 +30,12 @@ func main() {
 	r.AddPublicRout("/public/auth/authenticate", a.Authenticate)
 
 	//создаем хэндлер, передаёмюз кейс
-	meter := meter.NewMeter(meterUseCase)
-	r.AddPrivateRout("/private/meter", meter.GetValues)
+	meterGasHandler := meter.NewGasMeterHandler(*gasMeterUseCase)
+	meterEnHandler := meter.NewEnMeterHandler(*enMeterUseCase)
+
+	//Создаем маршруты
+	r.AddPrivateRout("/private/metergas", meterGasHandler.GetGasValues)
+	r.AddPrivateRout("/private/meteren", meterEnHandler.GetEnValues)
 
 	r.CompilemmMux()
 	s := server.NewMyServer(c, r)
