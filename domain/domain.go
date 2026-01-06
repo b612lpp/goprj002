@@ -30,7 +30,7 @@ func (mr *MeterReading) IsValidComparedTo(p []int) bool {
 	state := false
 	if len(p) == len(mr.Values) {
 		for i := range p {
-			if p[i] <= mr.Values[i] {
+			if p[i] <= mr.Values[i] && mr.Values[i] >= 0 {
 				state = true
 			} else {
 				return false
