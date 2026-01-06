@@ -48,15 +48,38 @@ func TestIsValidComparedTo(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:     "Массивы разно длинны. Новый больше",
+			name:     "Массивы разной длинны. Новый больше",
 			mr:       MeterReading{Values: []int{1, 1}},
 			p:        []int{2},
 			expected: false,
 		},
 		{
-			name:     "Массивы разно длинны. Старый больше",
+			name:     "Массивы разной длинны. Старый больше",
 			mr:       MeterReading{Values: []int{3}},
 			p:        []int{2, 2},
+			expected: false,
+		}, {
+			name:     "Входящий массив пустой",
+			mr:       MeterReading{Values: []int{}},
+			p:        []int{2, 2},
+			expected: false,
+		},
+		{
+			name:     "Массив предыдущих значений пустой",
+			mr:       MeterReading{Values: []int{2, 2}},
+			p:        []int{},
+			expected: false,
+		},
+		{
+			name:     "Массив предыдущих значений отрицательный",
+			mr:       MeterReading{Values: []int{2, 2}},
+			p:        []int{-1, -1},
+			expected: true,
+		},
+		{
+			name:     "Массивы оба отрицательные",
+			mr:       MeterReading{Values: []int{-3, -3}},
+			p:        []int{-4, -42},
 			expected: false,
 		},
 	}
