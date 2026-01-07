@@ -5,8 +5,9 @@ import "time"
 type MeterReading struct {
 	ownerId   string
 	meterType string
-	CreatedAt time.Time
-	Values    []int `json:"value"`
+	counts    int //количество показателей в счетчике
+	values    []int
+	createdAt time.Time
 }
 
 func (mr *MeterReading) GetOwnerID() string {
@@ -16,47 +17,41 @@ func (mr *MeterReading) GetOwnerID() string {
 func (mr *MeterReading) GetMEterType() string {
 	return mr.meterType
 }
+func (mr *MeterReading) GetValues() []int {
+	cp := make([]int, len(mr.values))
+	copy(cp, mr.values)
+	return cp
+}
 
-func (mr *MeterReading) SetValue(v []int) error {
-	if len(v) < 1 {
-		return ErrValueToAdd
+//Сравниваем полученные значения с предыдущими, если ОК то заполняем агрегат
+func (mr *MeterReading) Apply(p, v []int) error {
+
+	if len(v) != mr.counts {
+		return ErrValuesTypeMismatch
 	}
-	mr.Values = v
+
+	for i := range v {
+		if v[i] < 0 {
+			return ErrValueLessThanZero
+		}
+
+	}
+	if len(v) == len(p) {
+		for i := range v {
+			if v[i] < p[i] {
+				return ErrNewValueLessThanPrev
+			}
+		}
+	}
+
+	mr.values = v
 	return nil
 }
 
-//Сравниваем значение текущего значения с предыдущего. р - заданный массив дляпроверки
-func (mr *MeterReading) IsValidComparedTo(p []int) bool {
-	state := false
-	if len(p) == len(mr.Values) {
-		for i := range p {
-			if p[i] <= mr.Values[i] && mr.Values[i] >= 0 {
-				state = true
-			} else {
-				return false
-			}
-
-		}
-
-	}
-	return state
-}
-
-func (mr *MeterReading) Validate() bool {
-	state := false
-	for i := range mr.Values {
-		if mr.Values[i] < 0 {
-			return false
-		}
-		state = true
-	}
-	return state
-}
-
 func NewGasReading(owner string) MeterReading {
-	return MeterReading{ownerId: owner, meterType: "_Gas", CreatedAt: time.Now()}
+	return MeterReading{ownerId: owner, meterType: "_Gas", createdAt: time.Now(), counts: 1}
 }
 func NewEnReading(owner string) MeterReading {
 
-	return MeterReading{ownerId: owner, meterType: "_Electro", CreatedAt: time.Now()}
+	return MeterReading{ownerId: owner, meterType: "_Electro", createdAt: time.Now(), counts: 2}
 }
