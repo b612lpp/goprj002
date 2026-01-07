@@ -28,8 +28,6 @@ func (me *EnMeterHandler) GetEnValues(w http.ResponseWriter, r *http.Request) {
 
 	//Вычитываем пользователя из аутентификатора и создаем экземпляр доменного объекта
 	uid := r.Context().Value(middleware.OwnerId{}).(string)
-	emr := domain.NewEnReading(uid)
-
 	//Инициализируем структуру для получения пользовательских данных и передаём её адрес в парсер
 	t := enValues{}
 	if err := parseIncJ(r, &t); err != nil {
@@ -38,16 +36,9 @@ func (me *EnMeterHandler) GetEnValues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//После успешного парсинга заполняем модель
-	if err := emr.SetValue([]int{t.Day, t.Night}); err != nil {
-		w.WriteHeader(500)
-		slog.Info("ошибка процессинга данных", "подробности", err)
-		return
-	}
-
-	//Передаем заполненный объект в юз кейс
+	//Передаем заполненный объект в юз кейс входящие значения и ИДпользователя
 	slog.Info("данные переданы на обработку", "скоуп значений", t)
-	err := me.Uc.Execute(emr)
+	err := me.Uc.Execute(uid, []int{t.Day, t.Night})
 	if err == nil {
 		w.WriteHeader(http.StatusCreated)
 		return

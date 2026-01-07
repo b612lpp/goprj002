@@ -15,19 +15,20 @@ func NewSubmitReadingEn(r repository.Repo) *SubmitReadingEn {
 	return &SubmitReadingEn{R: r}
 }
 
-func (s *SubmitReadingEn) Execute(mr domain.MeterReading) error {
-	//Получаем предыдущее значение и ошибку. От этого действуем
-	gl, err := s.R.GetLast(mr.GetOwnerID(), mr.GetMEterType())
+func (s *SubmitReadingEn) Execute(u string, v []int) error {
 
+	emr := domain.NewEnReading(u)
+	gl, err := s.R.GetLast(u, emr.GetMEterType())
 	if err != nil && err != repository.ErrEmptyData {
-		slog.Error("ошибка получения предыдущих показаний", "owner", mr.GetOwnerID(), "err", err)
+		slog.Error("ошибка получения предыдущих показаний", "owner", emr.GetOwnerID(), "err", err)
 		return err
 	}
 
-	if err := mr.IsValid(gl.Values); err != nil {
+	if err = emr.Apply(gl.GetValues(), v); err != nil {
 		return err
 	}
-	s.R.Save(mr)
-	slog.Info("данные добавлены в бд", "owner", mr.GetOwnerID(), "new_values", mr.Values, "previous", gl.Values)
+
+	s.R.Save(emr)
+	slog.Info("данные добавлены в бд", "owner", emr.GetOwnerID(), "new_values", emr.GetValues(), "previous", gl.GetValues())
 	return nil
 }

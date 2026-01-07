@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/b612lpp/goprj002/application"
@@ -40,6 +41,7 @@ func main() {
 	r.CompilemmMux()
 	s := server.NewMyServer(c, r)
 
+	fmt.Printf("Сервер запущен. Порт %s база данных %s", c.Port, c.Db.GetTitle())
 	s.Run()
 
 }

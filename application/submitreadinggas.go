@@ -18,18 +18,19 @@ func NewSubmitReadingGas(r repository.Repo) *SubmitReadingGas {
 	return &SubmitReadingGas{R: r}
 }
 
-func (s *SubmitReadingGas) Execute(mr domain.MeterReading) error {
-	gl, err := s.R.GetLast(mr.GetOwnerID(), mr.GetMEterType())
-
+func (s *SubmitReadingGas) Execute(u string, v []int) error {
+	gmr := domain.NewGasReading(u)
+	gl, err := s.R.GetLast(u, gmr.GetMEterType())
 	if err != nil && err != repository.ErrEmptyData {
-		slog.Error("ошибка получения предыдущих показаний", "owner", mr.GetOwnerID(), "err", err)
+		slog.Error("ошибка получения предыдущих показаний", "owner", gmr.GetOwnerID(), "err", err)
 		return err
 	}
 
-	if err := mr.IsValid(gl.Values); err != nil {
+	if err = gmr.Apply(gl.GetValues(), v); err != nil {
 		return err
 	}
-	s.R.Save(mr)
-	slog.Info("данные добавлены в бд", "owner", mr.GetOwnerID(), "new_values", mr.Values, "previous", gl.Values)
+
+	s.R.Save(gmr)
+	slog.Info("данные добавлены в бд", "owner", gmr.GetOwnerID(), "new_values", gmr.GetValues(), "previous", gl.GetValues())
 	return nil
 }

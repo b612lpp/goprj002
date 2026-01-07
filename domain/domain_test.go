@@ -1,92 +1,106 @@
 package domain
 
 import (
+	"reflect"
 	"testing"
 )
 
-func TestIsValidComparedTo(t *testing.T) {
+func TestApply(t *testing.T) {
 
 	tests := []struct {
-		name     string
-		mr       MeterReading
-		p        []int
+		name string
+		mr   MeterReading
+
+		p, v     []int
 		expected error
 	}{
 		{
-			name:     "Новые показания больше чем предыдущие",
-			mr:       MeterReading{Values: []int{1, 1}},
-			p:        []int{0, 0},
+			name:     "Добавляем показания газа в пустую базу",
+			v:        []int{1},
+			p:        []int{},
+			mr:       MeterReading{counts: 1},
 			expected: nil},
 		{
-			name:     "Новые показания такие же",
-			mr:       MeterReading{Values: []int{1, 1}},
-			p:        []int{1, 1},
-			expected: nil,
-		},
-		{
-			name:     "Оба показания меньше",
-			mr:       MeterReading{Values: []int{1, 1}},
-			p:        []int{2, 2},
-			expected: ErrNewValueLessThanPrev,
-		},
-		{
-			name:     "Первое показание меньше",
-			mr:       MeterReading{Values: []int{1, 1}},
-			p:        []int{2, 1},
-			expected: ErrNewValueLessThanPrev,
-		},
-		{
-			name:     "Второе показание меньше",
-			mr:       MeterReading{Values: []int{1, 1}},
-			p:        []int{1, 2},
-			expected: ErrNewValueLessThanPrev,
-		},
-		{
-			name:     "Новые показания меньше 0",
-			mr:       MeterReading{Values: []int{-1, -1}},
-			p:        []int{2, 2},
-			expected: ErrValueLessThanZero,
-		},
-		{
-			name:     "Массивы разной длинны. Новый больше",
-			mr:       MeterReading{Values: []int{1, 1}},
-			p:        []int{2},
-			expected: ErrValuesMismatch,
-		},
-		{
-			name:     "Массивы разной длинны. Старый больше",
-			mr:       MeterReading{Values: []int{3}},
-			p:        []int{2, 2},
-			expected: ErrValuesMismatch,
-		}, {
-			name:     "Входящий массив пустой",
-			mr:       MeterReading{Values: []int{}},
-			p:        []int{2, 2},
-			expected: ErrEmptyValues,
-		},
-		{
-			name:     "Массив предыдущих значений пустой",
-			mr:       MeterReading{Values: []int{2, 2}},
+			name:     "Добавляем показания света в пустую базу",
+			v:        []int{1, 1},
 			p:        []int{},
-			expected: nil,
-		},
+			mr:       MeterReading{counts: 2},
+			expected: nil},
 		{
-			name:     "Массив предыдущих значений отрицательный",
-			mr:       MeterReading{Values: []int{2, 2}},
-			p:        []int{-1, -1},
-			expected: nil,
-		},
+			name:     "Добавляем отрицательные показания газа в пустую базу",
+			v:        []int{-1},
+			p:        []int{},
+			mr:       MeterReading{counts: 1},
+			expected: ErrValueLessThanZero},
 		{
-			name:     "Массивы оба отрицательные",
-			mr:       MeterReading{Values: []int{-3, -3}},
-			p:        []int{-4, -42},
-			expected: ErrValueLessThanZero,
-		},
+			name:     "Добавляем отрицательные показания света в пустую базу",
+			v:        []int{-1, 1},
+			p:        []int{},
+			mr:       MeterReading{counts: 2},
+			expected: ErrValueLessThanZero},
+		{
+			name:     "Добавляем корректные показания газа в не пустую базу",
+			v:        []int{2},
+			p:        []int{1},
+			mr:       MeterReading{counts: 1},
+			expected: nil},
+		{
+			name:     "Добавляем корректные показания света в не пустую базу",
+			v:        []int{2, 2},
+			p:        []int{1, 1},
+			mr:       MeterReading{counts: 2},
+			expected: nil},
+		{
+			name:     "Добавляем меньшие показания газа в не пустую базу",
+			v:        []int{1},
+			p:        []int{2},
+			mr:       MeterReading{counts: 1},
+			expected: ErrNewValueLessThanPrev},
+		{
+			name:     "Добавляем меньшие показания света в не пустую базу",
+			v:        []int{1, 1},
+			p:        []int{2, 2},
+			mr:       MeterReading{counts: 2},
+			expected: ErrNewValueLessThanPrev},
+		{
+			name:     "Добавляем больше показаний газа в не пустую базу",
+			v:        []int{1, 2},
+			p:        []int{1},
+			mr:       MeterReading{counts: 1},
+			expected: ErrValuesTypeMismatch},
+		{
+			name:     "Добавляем больше показаний света в не пустую базу",
+			v:        []int{2, 2, 2},
+			p:        []int{2, 2},
+			mr:       MeterReading{counts: 2},
+			expected: ErrValuesTypeMismatch},
+		{
+			name:     "Добавляем больше показаний газа в не пустую базу",
+			v:        []int{},
+			p:        []int{1},
+			mr:       MeterReading{counts: 1},
+			expected: ErrValuesTypeMismatch},
+		{
+			name:     "Добавляем меньше показаний света в не пустую базу",
+			v:        []int{2},
+			p:        []int{2, 2},
+			mr:       MeterReading{counts: 2},
+			expected: ErrValuesTypeMismatch},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.mr.IsValid(tt.p)
+			result := tt.mr.Apply(tt.p, tt.v)
+
+			if result == nil {
+				if !reflect.DeepEqual(tt.v, tt.mr.values) {
+					t.Errorf("%s подходящие значения не были применены", tt.name)
+				}
+			} else {
+				if tt.mr.values != nil {
+					t.Errorf("%s значения не должны были быть применены. записано %v", tt.name, tt.mr.values)
+				}
+			}
 
 			if result != tt.expected {
 				t.Errorf("%s failed got %v expexted %v", tt.name, result, tt.expected)
