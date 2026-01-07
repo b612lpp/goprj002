@@ -53,8 +53,18 @@ func (me *EnMeterHandler) GetEnValues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if errors.Is(err, application.ErrValueValidation) {
+	if errors.Is(err, domain.ErrNewValueLessThanPrev) {
 		slog.Info("значение меньше предыдущего")
+		w.WriteHeader(400)
+		return
+	}
+	if errors.Is(err, domain.ErrValueLessThanZero) {
+		slog.Info("входящее значение меньше нуля")
+		w.WriteHeader(400)
+		return
+	}
+	if errors.Is(err, domain.ErrEmptyValues) {
+		slog.Info("входящее значение не могут быть пустыми")
 		w.WriteHeader(400)
 		return
 	}

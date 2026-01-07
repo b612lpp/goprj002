@@ -26,31 +26,37 @@ func (mr *MeterReading) SetValue(v []int) error {
 }
 
 //Сравниваем значение текущего значения с предыдущего. р - заданный массив дляпроверки
-func (mr *MeterReading) IsValidComparedTo(p []int) bool {
-	state := false
-	if len(p) == len(mr.Values) {
-		for i := range p {
-			if p[i] <= mr.Values[i] && mr.Values[i] >= 0 {
-				state = true
-			} else {
-				return false
+func (mr *MeterReading) IsValid(p []int) error {
+
+	if len(mr.Values) == 0 || mr.Values == nil {
+		return ErrEmptyValues
+	}
+
+	if len(p) == 0 {
+		for i := range mr.Values {
+			if mr.Values[i] < 0 {
+				return ErrValueLessThanZero
 			}
 
 		}
-
+		return nil
 	}
-	return state
-}
 
-func (mr *MeterReading) Validate() bool {
-	state := false
-	for i := range mr.Values {
+	if len(p) != len(mr.Values) && len(p) != 0 {
+		return ErrValuesMismatch
+	}
+
+	for i := range p {
 		if mr.Values[i] < 0 {
-			return false
+			return ErrValueLessThanZero
 		}
-		state = true
+		if p[i] > mr.Values[i] {
+			return ErrNewValueLessThanPrev
+		}
+
 	}
-	return state
+
+	return nil
 }
 
 func NewGasReading(owner string) MeterReading {

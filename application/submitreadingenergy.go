@@ -24,21 +24,8 @@ func (s *SubmitReadingEn) Execute(mr domain.MeterReading) error {
 		return err
 	}
 
-	if mr.Validate() != true {
-		slog.Info("Полученные данные меньше 0")
-		return ErrLowerZero
-	}
-
-	if len(gl.Values) == 0 && err == repository.ErrEmptyData {
-		if err := s.R.Save(mr); err != nil {
-			return err
-		}
-		slog.Info("новые данные записаны в бд", "owner", mr.GetOwnerID(), "value", mr.Values)
-		return nil
-	}
-
-	if res := mr.IsValidComparedTo(gl.Values); res != true {
-		return ErrValueValidation
+	if err := mr.IsValid(gl.Values); err != nil {
+		return err
 	}
 	s.R.Save(mr)
 	slog.Info("данные добавлены в бд", "owner", mr.GetOwnerID(), "new_values", mr.Values, "previous", gl.Values)
