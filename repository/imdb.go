@@ -10,7 +10,7 @@ type IMDB struct {
 }
 
 func NemIMDB() Repo {
-	return &IMDB{Title: "IMDB", Data: make(map[string][]domain.MeterReading)}
+	return &IMDB{Title: "InMemory Application DB", Data: make(map[string][]domain.MeterReading)}
 }
 func (db *IMDB) GetTitle() string {
 	return db.Title

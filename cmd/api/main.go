@@ -20,8 +20,8 @@ func main() {
 	r := router.NewMyRouter()
 
 	//создаём юз кейсы
-	gasMeterUseCase := application.NewSubmitReadingGas(c.Db)
-	enMeterUseCase := application.NewSubmitReadingEn(c.Db)
+	gasMeterUseCase := application.NewSubmitReadingGas(c.WH)
+	enMeterUseCase := application.NewSubmitReadingEn(c.WH)
 
 	health := health.NewHealthHandler()
 	r.AddPublicRout("/public/health", health.ResponsOK)
@@ -41,7 +41,7 @@ func main() {
 	r.CompilemmMux()
 	s := server.NewMyServer(c, r)
 
-	fmt.Printf("Сервер запущен. Порт %s база данных %s", c.Port, c.Db.GetTitle())
+	fmt.Printf("Сервер запущен. Порт %s Хранилища %s ", c.Port, c.WH.GetTitle())
 	s.Run()
 
 }

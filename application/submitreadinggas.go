@@ -11,10 +11,10 @@ type AllUseCases struct {
 }
 
 type SubmitReadingGas struct {
-	R repository.Repo
+	R repository.ReadingStorage
 }
 
-func NewSubmitReadingGas(r repository.Repo) *SubmitReadingGas {
+func NewSubmitReadingGas(r repository.ReadingStorage) *SubmitReadingGas {
 	return &SubmitReadingGas{R: r}
 }
 
