@@ -2,6 +2,7 @@ package domain
 
 import "time"
 
+//Описание модели для работы с входящими данными показаний счетчиков клиента
 type MeterReading struct {
 	ownerId   string
 	meterType string
@@ -24,28 +25,29 @@ func (mr *MeterReading) GetValues() []int {
 }
 
 //Сравниваем полученные значения с предыдущими, если ОК то заполняем агрегат
-func (mr *MeterReading) Apply(p, v []int) error {
+func (mr *MeterReading) Apply(p, v []int) (EventuallyAppliedData, error) {
 
 	if len(v) != mr.counts {
-		return ErrValuesTypeMismatch
+		return EventuallyAppliedData{}, ErrValuesTypeMismatch
 	}
 
 	for i := range v {
 		if v[i] < 0 {
-			return ErrValueLessThanZero
+			return EventuallyAppliedData{}, ErrValueLessThanZero
 		}
 
 	}
 	if len(v) == len(p) {
 		for i := range v {
 			if v[i] < p[i] {
-				return ErrNewValueLessThanPrev
+				return EventuallyAppliedData{}, ErrNewValueLessThanPrev
 			}
 		}
 	}
 
 	mr.values = v
-	return nil
+
+	return EventuallyAppliedData{owner: mr.ownerId, meterType: mr.meterType, values: mr.values, createdAt: time.Now()}, nil
 }
 
 func NewGasReading(owner string) MeterReading {

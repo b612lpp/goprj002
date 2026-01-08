@@ -8,10 +8,10 @@ import (
 )
 
 type SubmitReadingEn struct {
-	R repository.Repo
+	R repository.ReadingStorage
 }
 
-func NewSubmitReadingEn(r repository.Repo) *SubmitReadingEn {
+func NewSubmitReadingEn(r repository.ReadingStorage) *SubmitReadingEn {
 	return &SubmitReadingEn{R: r}
 }
 
@@ -24,10 +24,11 @@ func (s *SubmitReadingEn) Execute(u string, v []int) error {
 		return err
 	}
 
-	if err = emr.Apply(gl.GetValues(), v); err != nil {
+	event, err := emr.Apply(gl.GetValues(), v)
+	if err != nil {
 		return err
 	}
-
+	s.R.AddEvent(event)
 	s.R.Save(emr)
 	slog.Info("данные добавлены в бд", "owner", emr.GetOwnerID(), "new_values", emr.GetValues(), "previous", gl.GetValues())
 	return nil
