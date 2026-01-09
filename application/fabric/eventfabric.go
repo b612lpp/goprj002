@@ -1,8 +1,6 @@
-package application
+package fabric
 
 import (
-	"time"
-
 	"github.com/b612lpp/goprj002/domain"
 )
 
@@ -14,7 +12,7 @@ type EventFormer interface {
 }
 
 func (ef *EventFabric) MakeEvent(mr domain.MeterReading) domain.EventuallyAppliedData {
-	return domain.EventuallyAppliedData{Owner: mr.GetOwnerID(), MeterType: mr.GetMEterType(), Values: mr.GetValues(), CreatedAt: time.Now()}
+	return domain.EventuallyAppliedData{Owner: mr.GetOwnerID(), MeterType: mr.GetMEterType(), Values: mr.GetValues(), CreatedAt: mr.GetCreatedAt()}
 }
 
 func NewEventFabric() EventFormer {

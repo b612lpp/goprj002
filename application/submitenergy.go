@@ -3,16 +3,17 @@ package application
 import (
 	"log/slog"
 
+	"github.com/b612lpp/goprj002/application/fabric"
 	"github.com/b612lpp/goprj002/domain"
 	"github.com/b612lpp/goprj002/repository"
 )
 
 type SubmitReadingEn struct {
 	R repository.ReadingStorage
-	F EventFormer
+	F fabric.EventFormer
 }
 
-func NewSubmitReadingEn(r repository.ReadingStorage, f EventFormer) *SubmitReadingEn {
+func NewSubmitReadingEn(r repository.ReadingStorage, f fabric.EventFormer) *SubmitReadingEn {
 	return &SubmitReadingEn{R: r, F: f}
 }
 
@@ -32,12 +33,15 @@ func (s *SubmitReadingEn) Execute(u string, v []int) error {
 
 	err = s.R.Save(emr)
 	if err != nil {
-		slog.Info("ошибка сохранения")
+		slog.Info("ошибка записи в БД")
 		return err
 	}
 	slog.Info("данные добавлены в бд", "owner", emr.GetOwnerID(), "new_values", emr.GetValues(), "previous", gl.GetValues())
 
-	s.R.AddEvent(s.F.MakeEvent(emr))
+	if err = s.R.AddEvent(s.F.MakeEvent(emr)); err != nil {
+		slog.Info("ошибка сохранения события")
+		return err
+	}
 
 	return nil
 }

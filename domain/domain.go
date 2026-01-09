@@ -18,6 +18,9 @@ func (mr *MeterReading) GetOwnerID() string {
 func (mr *MeterReading) GetMEterType() string {
 	return mr.meterType
 }
+func (mr *MeterReading) GetCreatedAt() time.Time {
+	return mr.createdAt
+}
 func (mr *MeterReading) GetValues() []int {
 	cp := make([]int, len(mr.values))
 	copy(cp, mr.values)

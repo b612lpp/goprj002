@@ -3,6 +3,7 @@ package application
 import (
 	"log/slog"
 
+	"github.com/b612lpp/goprj002/application/fabric"
 	"github.com/b612lpp/goprj002/domain"
 	"github.com/b612lpp/goprj002/repository"
 )
@@ -12,10 +13,10 @@ type AllUseCases struct {
 
 type SubmitReadingGas struct {
 	R repository.ReadingStorage
-	F EventFormer
+	F fabric.EventFormer
 }
 
-func NewSubmitReadingGas(r repository.ReadingStorage, f EventFormer) *SubmitReadingGas {
+func NewSubmitReadingGas(r repository.ReadingStorage, f fabric.EventFormer) *SubmitReadingGas {
 	return &SubmitReadingGas{R: r, F: f}
 }
 
