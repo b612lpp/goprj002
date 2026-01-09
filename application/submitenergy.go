@@ -9,10 +9,11 @@ import (
 
 type SubmitReadingEn struct {
 	R repository.ReadingStorage
+	F EventFormer
 }
 
-func NewSubmitReadingEn(r repository.ReadingStorage) *SubmitReadingEn {
-	return &SubmitReadingEn{R: r}
+func NewSubmitReadingEn(r repository.ReadingStorage, f EventFormer) *SubmitReadingEn {
+	return &SubmitReadingEn{R: r, F: f}
 }
 
 func (s *SubmitReadingEn) Execute(u string, v []int) error {
@@ -24,12 +25,19 @@ func (s *SubmitReadingEn) Execute(u string, v []int) error {
 		return err
 	}
 
-	event, err := emr.Apply(gl.GetValues(), v)
+	err = emr.Apply(gl.GetValues(), v)
 	if err != nil {
 		return err
 	}
-	s.R.AddEvent(event)
-	s.R.Save(emr)
+
+	err = s.R.Save(emr)
+	if err != nil {
+		slog.Info("ошибка сохранения")
+		return err
+	}
 	slog.Info("данные добавлены в бд", "owner", emr.GetOwnerID(), "new_values", emr.GetValues(), "previous", gl.GetValues())
+
+	s.R.AddEvent(s.F.MakeEvent(emr))
+
 	return nil
 }

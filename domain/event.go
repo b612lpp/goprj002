@@ -3,8 +3,8 @@ package domain
 import "time"
 
 type EventuallyAppliedData struct {
-	owner     string
-	meterType string
-	values    []int
-	createdAt time.Time
+	Owner     string
+	MeterType string
+	Values    []int
+	CreatedAt time.Time
 }
