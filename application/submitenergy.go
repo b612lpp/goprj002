@@ -2,6 +2,7 @@ package application
 
 import (
 	"log/slog"
+	"sync"
 
 	"github.com/b612lpp/goprj002/application/fabric"
 	"github.com/b612lpp/goprj002/domain"
@@ -18,7 +19,7 @@ func NewSubmitReadingEn(r repository.ReadingStorage, f fabric.EventFormer) *Subm
 }
 
 func (s *SubmitReadingEn) Execute(u string, v []int) error {
-
+	var mu sync.Mutex
 	emr := domain.NewEnReading(u)
 	gl, err := s.R.GetLast(u, emr.GetMEterType())
 	if err != nil && err != repository.ErrEmptyData {
