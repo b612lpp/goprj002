@@ -2,7 +2,7 @@ package domain
 
 import "time"
 
-//Описание модели для работы с входящими данными показаний счетчиков клиента
+// Описание модели для работы с входящими данными показаний счетчиков клиента
 type MeterReading struct {
 	ownerId   string
 	meterType string
@@ -18,13 +18,16 @@ func (mr *MeterReading) GetOwnerID() string {
 func (mr *MeterReading) GetMEterType() string {
 	return mr.meterType
 }
+func (mr *MeterReading) GetCreatedAt() time.Time {
+	return mr.createdAt
+}
 func (mr *MeterReading) GetValues() []int {
 	cp := make([]int, len(mr.values))
 	copy(cp, mr.values)
 	return cp
 }
 
-//Сравниваем полученные значения с предыдущими, если ОК то заполняем агрегат
+// Сравниваем полученные значения с предыдущими, если ОК то заполняем агрегат
 func (mr *MeterReading) Apply(p, v []int) error {
 
 	if len(v) != mr.counts {

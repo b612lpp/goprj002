@@ -3,6 +3,7 @@ package application
 import (
 	"log/slog"
 
+	"github.com/b612lpp/goprj002/application/fabric"
 	"github.com/b612lpp/goprj002/domain"
 	"github.com/b612lpp/goprj002/repository"
 )
@@ -12,10 +13,11 @@ type AllUseCases struct {
 
 type SubmitReadingGas struct {
 	R repository.ReadingStorage
+	F fabric.EventFormer
 }
 
-func NewSubmitReadingGas(r repository.ReadingStorage) *SubmitReadingGas {
-	return &SubmitReadingGas{R: r}
+func NewSubmitReadingGas(r repository.ReadingStorage, f fabric.EventFormer) *SubmitReadingGas {
+	return &SubmitReadingGas{R: r, F: f}
 }
 
 func (s *SubmitReadingGas) Execute(u string, v []int) error {
@@ -31,7 +33,13 @@ func (s *SubmitReadingGas) Execute(u string, v []int) error {
 		return err
 	}
 
-	s.R.Save(gmr)
+	err = s.R.Save(gmr)
+	if err != nil {
+		slog.Info("ошибка сохранения")
+		return err
+	}
 	slog.Info("данные добавлены в бд", "owner", gmr.GetOwnerID(), "new_values", gmr.GetValues(), "previous", gl.GetValues())
+
+	s.R.AddEvent(s.F.MakeEvent(gmr))
 	return nil
 }

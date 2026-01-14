@@ -2,21 +2,24 @@ package application
 
 import (
 	"log/slog"
+	"sync"
 
+	"github.com/b612lpp/goprj002/application/fabric"
 	"github.com/b612lpp/goprj002/domain"
 	"github.com/b612lpp/goprj002/repository"
 )
 
 type SubmitReadingEn struct {
 	R repository.ReadingStorage
+	F fabric.EventFormer
 }
 
-func NewSubmitReadingEn(r repository.ReadingStorage) *SubmitReadingEn {
-	return &SubmitReadingEn{R: r}
+func NewSubmitReadingEn(r repository.ReadingStorage, f fabric.EventFormer) *SubmitReadingEn {
+	return &SubmitReadingEn{R: r, F: f}
 }
 
 func (s *SubmitReadingEn) Execute(u string, v []int) error {
-
+	var mu sync.Mutex
 	emr := domain.NewEnReading(u)
 	gl, err := s.R.GetLast(u, emr.GetMEterType())
 	if err != nil && err != repository.ErrEmptyData {
@@ -29,7 +32,17 @@ func (s *SubmitReadingEn) Execute(u string, v []int) error {
 		return err
 	}
 
-	s.R.Save(emr)
+	err = s.R.Save(emr)
+	if err != nil {
+		slog.Info("ошибка записи в БД")
+		return err
+	}
 	slog.Info("данные добавлены в бд", "owner", emr.GetOwnerID(), "new_values", emr.GetValues(), "previous", gl.GetValues())
+
+	if err = s.R.AddEvent(s.F.MakeEvent(emr)); err != nil {
+		slog.Info("ошибка сохранения события")
+		return err
+	}
+
 	return nil
 }

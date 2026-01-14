@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/b612lpp/goprj002/application"
+	"github.com/b612lpp/goprj002/application/fabric"
 	"github.com/b612lpp/goprj002/internal/config"
 	"github.com/b612lpp/goprj002/internal/delivery/http/auth"
 	"github.com/b612lpp/goprj002/internal/delivery/http/health"
@@ -18,10 +19,11 @@ func main() {
 	c := config.NewServerConf()
 	slog.SetDefault(c.Logger)
 	r := router.NewMyRouter()
-
+	// создаем фабрику эвентов
+	ef := fabric.NewEventFabric()
 	//создаём юз кейсы
-	gasMeterUseCase := application.NewSubmitReadingGas(c.WH)
-	enMeterUseCase := application.NewSubmitReadingEn(c.WH)
+	gasMeterUseCase := application.NewSubmitReadingGas(c.WH, ef)
+	enMeterUseCase := application.NewSubmitReadingEn(c.WH, ef)
 
 	health := health.NewHealthHandler()
 	r.AddPublicRout("/public/health", health.ResponsOK)
