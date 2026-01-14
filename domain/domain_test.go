@@ -90,9 +90,9 @@ func TestApply(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tt.mr.Apply(tt.p, tt.v)
+			_, resultErr := tt.mr.Apply(tt.p, tt.v)
 
-			if result == nil {
+			if resultErr == nil {
 				if !reflect.DeepEqual(tt.v, tt.mr.values) {
 					t.Errorf("%s подходящие значения не были применены", tt.name)
 				}
@@ -102,8 +102,8 @@ func TestApply(t *testing.T) {
 				}
 			}
 
-			if result != tt.expected {
-				t.Errorf("%s failed got %v expexted %v", tt.name, result, tt.expected)
+			if resultErr != tt.expected {
+				t.Errorf("%s failed got %v expexted %v", tt.name, resultErr, tt.expected)
 			}
 		})
 	}

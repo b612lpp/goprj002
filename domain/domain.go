@@ -25,29 +25,29 @@ func (mr *MeterReading) GetValues() []int {
 }
 
 //Сравниваем полученные значения с предыдущими, если ОК то заполняем агрегат
-func (mr *MeterReading) Apply(p, v []int) (EventuallyAppliedData, error) {
+func (mr *MeterReading) Apply(p, v []int) error {
 
 	if len(v) != mr.counts {
-		return EventuallyAppliedData{}, ErrValuesTypeMismatch
+		return ErrValuesTypeMismatch
 	}
 
 	for i := range v {
 		if v[i] < 0 {
-			return EventuallyAppliedData{}, ErrValueLessThanZero
+			return ErrValueLessThanZero
 		}
 
 	}
 	if len(v) == len(p) {
 		for i := range v {
 			if v[i] < p[i] {
-				return EventuallyAppliedData{}, ErrNewValueLessThanPrev
+				return ErrNewValueLessThanPrev
 			}
 		}
 	}
 
 	mr.values = v
 
-	return EventuallyAppliedData{owner: mr.ownerId, meterType: mr.meterType, values: mr.values, createdAt: time.Now()}, nil
+	return nil
 }
 
 func NewGasReading(owner string) MeterReading {

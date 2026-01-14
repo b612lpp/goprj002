@@ -26,11 +26,11 @@ func (s *SubmitReadingGas) Execute(u string, v []int) error {
 		return err
 	}
 
-	event, err := gmr.Apply(gl.GetValues(), v)
+	err = gmr.Apply(gl.GetValues(), v)
 	if err != nil {
 		return err
 	}
-	s.R.AddEvent(event)
+
 	s.R.Save(gmr)
 	slog.Info("данные добавлены в бд", "owner", gmr.GetOwnerID(), "new_values", gmr.GetValues(), "previous", gl.GetValues())
 	return nil
